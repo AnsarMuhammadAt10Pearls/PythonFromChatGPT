@@ -6,7 +6,7 @@ from pygame.locals import *
 pygame.init()
 
 # Screen dimensions
-screen_width, screen_height = 640, 480
+screen_width, screen_height = 960, 720
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Colors - Vibrant Color Palette
@@ -17,7 +17,6 @@ progress_colors = [
     (230, 126, 34)
 ]
 white = (255, 255, 255)
-black = (0, 0, 0)
 grey = (189, 195, 199)
 
 # Onboarding steps and their progress
@@ -49,6 +48,10 @@ def draw_details(step_index, progress, scale):
     if step_index < len(steps) - 1:
         x = 50 + step_index * 90 + int(progress * 70)
         y = 380
+
+        # Clear the previous text by filling the background at the text position
+        screen.fill(background_color, (50 + step_index * 90 - radius, y + radius + 5, 400, 30))
+
         pygame.draw.circle(screen, progress_colors[step_index], (x, y), radius)
 
         # Fading effect for text
@@ -65,9 +68,34 @@ def draw_details(step_index, progress, scale):
 
 def draw_step(step_index, progress):
     """Draws the step including its progress bar, label, and additional details with animation."""
+    screen.fill(background_color)  # Clear the screen
+
+    # Draw the previous step's text with a fading effect
+    if step_index > 0:
+        prev_text = font.render(steps[step_index - 1], True, white)
+        prev_text_rect = prev_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
+        prev_alpha = int(255 * (1 - progress))
+        prev_text.set_alpha(prev_alpha)
+        screen.blit(prev_text, prev_text_rect)
+
+    # Draw the current step's text
     text = font.render(steps[step_index], True, white)
-    text_rect = text.get_rect(center=(60 + step_index * 90, 30))
+    text_rect = text.get_rect(center=(screen_width // 2, screen_height // 2))
     screen.blit(text, text_rect)
+
+    # Draw additional lines for "Setup Profile" step
+    if step_index == 4:
+        line1 = font.render("Create a captivating profile", True, white)
+        line1_rect = line1.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
+        screen.blit(line1, line1_rect)
+
+        line2 = font.render("Add your details and preferences", True, white)
+        line2_rect = line2.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+        screen.blit(line2, line2_rect)
+
+        line3 = font.render("Personalize your experience", True, white)
+        line3_rect = line3.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+        screen.blit(line3, line3_rect)
 
     # Progress bar positions: x, y, width, height
     bar_position = (50 + step_index * 90, 100, 70, 15)
@@ -86,17 +114,15 @@ while running:
         if event.type == QUIT:
             running = False
 
-    screen.fill(background_color)
-
     # Update and draw each step and its details with animations
-    for i in range(len(steps)):
-        draw_step(i, progress[i])
+    draw_step(step_index, progress[step_index])
 
     # Animate progress for the current step
     progress[step_index] += 0.005  # Adjust the speed of progress filling
     if progress[step_index] >= 1:
         progress[step_index] = 1  # Cap at 100%
         if step_index < len(steps) - 1:  # Wait before moving to the next step
+            pygame.time.wait(1000)  # Pause for effect
             step_index += 1
         else:
             # Reset or conclude the animation when all steps are complete
